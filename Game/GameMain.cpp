@@ -99,9 +99,9 @@ int g_counter;
 // 関数の宣言 ==============================================================
 
 // <ゲームの更新処理:シーン> -------------------------------------------
-void UpdateGameDemo(void);
-void UpdateGameServe(void);
-void UpdateGamePlay(void);
+void UpdateGameSceneDemo(void);
+void UpdateGameSceneServe(void);
+void UpdateGameScenePlay(void);
 
 // <ゲームの更新処理:操作:座標> ----------------------------------------
 void UpdateGameControlPaddle1(void);
@@ -112,27 +112,32 @@ void UpdateGameControlPaddleBot1(void);
 void UpdateGameControlPaddleBot2(void);
 
 // <ゲームの更新処理:オブジェクト:座標> --------------------------------
-void UpdateGamePositionBall(void);
-void UpdateGamePositionPaddle(void);
-void UpdateGamePositionPaddleTarget(void);
+void UpdateGameObjectPositionBall(void);
+void UpdateGameObjectPositionPaddle(void);
+void UpdateGameObjectPositionPaddleTarget(void);
 
 // <ゲームの更新処理:オブジェクト:当たり判定> --------------------------
-int UpdateGameCollisionBallTopBottom(void);
-int UpdateGameCollisionBallLeftRight(void);
-int UpdateGameCollisionBallScoring(void);
-int UpdateGameCollisionPaddle(void);
+int UpdateGameObjectCollisionBallTopBottom(void);
+int UpdateGameObjectCollisionBallLeftRight(void);
+int UpdateGameObjectCollisionBallLeftRightScoring(void);
+int UpdateGameObjectCollisionBallPaddle(void);
+void UpdateGameObjectCollisionPaddleTopBottom(void);
 
 // <ゲームの更新処理:ユーティリティ> -----------------------------------
 int IsHit(float ball_pos_x, float ball_pos_y, float paddle_pos_x, float paddle_pos_y);
 float getTargetY(float paddle_enemy_pos_x, float paddle_myself_pos_x, int k);
 
 // <ゲームの描画処理> --------------------------------------------------
-void RenderGameDemo(void);
-void RenderGameServe(void);
-void RenderGamePlay(void);
+void RenderGameSceneDemo(void);
+void RenderGameSceneServe(void);
+void RenderGameScenePlay(void);
 
 // <ゲームの描画処理:オブジェクト> -------------------------------------
-void RenderGameCommon(void);
+void RenderGameObjectField(void);
+void RenderGameObjectScore(void);
+void RenderGameObjectPaddleGuide(void);
+void RenderGameObjectPaddle(void);
+void RenderGameObjectBall(void);
 
 // <ゲームの描画処理:ユーティリティ> -----------------------------------
 void RenderObj(float x, float y, float w, float h, unsigned int color);
@@ -208,19 +213,19 @@ void UpdateGame(void)
 	switch (g_game_state)
 	{
 	case STATE_DEMO:
-		UpdateGameDemo();
+		UpdateGameSceneDemo();
 		break;
 	case STATE_SERVE:
-		UpdateGameServe();
+		UpdateGameSceneServe();
 		break;
 	case STATE_PLAY:
-		UpdateGamePlay();
+		UpdateGameScenePlay();
 		break;
 	}
 }
 
-// <ゲームの更新処理:デモ> ---------------------------------------------
-void UpdateGameDemo(void)
+// <ゲームの更新処理:シーン:デモ> --------------------------------------
+void UpdateGameSceneDemo(void)
 {
 	// 待機&初期化
 	{
@@ -240,15 +245,15 @@ void UpdateGameDemo(void)
 	}
 
 	// 座標更新
-	UpdateGamePositionBall();
+	UpdateGameObjectPositionBall();
 
 	// 当たり判定
-	UpdateGameCollisionBallTopBottom();
-	UpdateGameCollisionBallLeftRight();
+	UpdateGameObjectCollisionBallTopBottom();
+	UpdateGameObjectCollisionBallLeftRight();
 }
 
-// <ゲームの更新処理:サーブ> -------------------------------------------
-void UpdateGameServe(void)
+// <ゲームの更新処理:シーン:サーブ> ------------------------------------
+void UpdateGameSceneServe(void)
 {
 	// 待機&初期化
 	{
@@ -272,38 +277,38 @@ void UpdateGameServe(void)
 	UpdateGameControlPaddle2();
 
 	// 座標更新
-	UpdateGamePositionBall();
-	UpdateGamePositionPaddle();
+	UpdateGameObjectPositionBall();
+	UpdateGameObjectPositionPaddle();
 
 	// 当たり判定
-	UpdateGameCollisionBallTopBottom();
-	UpdateGameCollisionPaddle();
+	UpdateGameObjectCollisionBallTopBottom();
+	UpdateGameObjectCollisionBallPaddle();
 }
 
-// <ゲームの更新処理:プレイ> -------------------------------------------
-void UpdateGamePlay(void)
+// <ゲームの更新処理:シーン:プレイ> ------------------------------------
+void UpdateGameScenePlay(void)
 {
 	// ターゲット座標更新
-	UpdateGamePositionPaddleTarget();
+	UpdateGameObjectPositionPaddleTarget();
 
 	// 操作
 	UpdateGameControlPaddle1();
 	UpdateGameControlPaddle2();
 
 	// 座標更新
-	UpdateGamePositionBall();
-	UpdateGamePositionPaddle();
+	UpdateGameObjectPositionBall();
+	UpdateGameObjectPositionPaddle();
 
 	// 当たり判定
-	if (UpdateGameCollisionBallTopBottom())
+	if (UpdateGameObjectCollisionBallTopBottom())
 		PlaySoundMem(g_sound_se02, DX_PLAYTYPE_BACK);
-	if (UpdateGameCollisionBallScoring())
+	if (UpdateGameObjectCollisionBallLeftRightScoring())
 		PlaySoundMem(g_sound_se03, DX_PLAYTYPE_BACK);
-	if (UpdateGameCollisionPaddle())
+	if (UpdateGameObjectCollisionBallPaddle())
 		PlaySoundMem(g_sound_se01, DX_PLAYTYPE_BACK);
 }
 
-// <ゲームの操作パドル1> -----------------------------------------------
+// <ゲームの更新処理:操作:パドル1> -------------------------------------
 void UpdateGameControlPaddle1(void)
 {
 	// 操作
@@ -313,7 +318,7 @@ void UpdateGameControlPaddle1(void)
 	}
 }
 
-// <ゲームの操作パドル1> -----------------------------------------------
+// <ゲームの更新処理:操作:パドル2> -------------------------------------
 void UpdateGameControlPaddle2(void)
 {
 	// 操作
@@ -323,7 +328,7 @@ void UpdateGameControlPaddle2(void)
 	}
 }
 
-// <ゲームの操作パドルプレイヤー1> -------------------------------------
+// <ゲームの更新処理:操作:プレイヤー1> ---------------------------------
 void UpdateGameControlPaddlePlayer1(void)
 {
 	// キー入力でパドル1を操作
@@ -336,7 +341,7 @@ void UpdateGameControlPaddlePlayer1(void)
 	}
 }
 
-// <ゲームの操作パドルプレイヤー2> -------------------------------------
+// <ゲームの更新処理:操作:プレイヤー2> ---------------------------------
 void UpdateGameControlPaddlePlayer2(void)
 {
 	// キー入力でパドル2を操作
@@ -349,7 +354,7 @@ void UpdateGameControlPaddlePlayer2(void)
 	}
 }
 
-// <ゲームの操作パドルBot1> --------------------------------------------
+// <ゲームの更新処理:操作:Bot1> ----------------------------------------
 void UpdateGameControlPaddleBot1(void)
 {
 	// Botがパドル1を操作
@@ -367,7 +372,7 @@ void UpdateGameControlPaddleBot1(void)
 	}
 }
 
-// <ゲームの操作パドルBot2> --------------------------------------------
+// <ゲームの更新処理:操作:Bot2> ----------------------------------------
 void UpdateGameControlPaddleBot2(void)
 {
 	// Botがパドル2を操作
@@ -385,8 +390,8 @@ void UpdateGameControlPaddleBot2(void)
 	}
 }
 
-// <ゲームの座標ボールBot左> -------------------------------------------
-void UpdateGamePositionBall(void)
+// <ゲームの更新処理:座標:ボール> --------------------------------------
+void UpdateGameObjectPositionBall(void)
 {
 	// 座標更新
 	{
@@ -396,8 +401,8 @@ void UpdateGamePositionBall(void)
 	}
 }
 
-// <ゲームの座標パドル> ------------------------------------------------
-void UpdateGamePositionPaddle(void)
+// <ゲームの更新処理:座標:パドル> --------------------------------------
+void UpdateGameObjectPositionPaddle(void)
 {
 	// 座標更新
 	{
@@ -411,8 +416,8 @@ void UpdateGamePositionPaddle(void)
 	}
 }
 
-// <ゲームの座標パドルターゲット> --------------------------------------
-void UpdateGamePositionPaddleTarget(void)
+// <ゲームの更新処理:座標:パドルターゲット> ----------------------------
+void UpdateGameObjectPositionPaddleTarget(void)
 {
 	// ターゲット計算
 	{
@@ -421,8 +426,8 @@ void UpdateGamePositionPaddleTarget(void)
 	}
 }
 
-// <ゲームの衝突ボールスコア上下> --------------------------------------
-int UpdateGameCollisionBallTopBottom(void)
+// <ゲームの更新処理:衝突:ボール×壁上下> ------------------------------
+int UpdateGameObjectCollisionBallTopBottom(void)
 {
 	// ヒットフラグ
 	int flag_hit = 0;
@@ -447,8 +452,8 @@ int UpdateGameCollisionBallTopBottom(void)
 	return flag_hit;
 }
 
-// <ゲームの衝突ボールスコア左右> --------------------------------------
-int UpdateGameCollisionBallLeftRight(void)
+// <ゲームの更新処理:衝突:ボール×壁左右> ------------------------------
+int UpdateGameObjectCollisionBallLeftRight(void)
 {
 	// ヒットフラグ
 	int flag_hit = 0;
@@ -473,8 +478,8 @@ int UpdateGameCollisionBallLeftRight(void)
 	return flag_hit;
 }
 
-// <ゲームの衝突ボール> ------------------------------------------------
-int UpdateGameCollisionBallScoring(void)
+// <ゲームの更新処理:衝突:ボール×壁左右(スコア)> ----------------------
+int UpdateGameObjectCollisionBallLeftRightScoring(void)
 {
 	// ヒットフラグ
 	int flag_hit = 0;
@@ -513,58 +518,59 @@ int UpdateGameCollisionBallScoring(void)
 	return flag_hit;
 }
 
-// <ゲームの衝突パドル> ------------------------------------------------
-int UpdateGameCollisionPaddle(void)
+// <ゲームの更新処理:衝突:パドル×ボール> ------------------------------
+int UpdateGameObjectCollisionBallPaddle(void)
 {
 	// ヒットフラグ
 	int flag_hit = 0;
 
-	// パドル当たり判定
+	// ボール・パドル当たり判定
 	{
-		// ボール・パドル当たり判定
+		if (IsHit(g_ball_pos_x, g_ball_pos_y, g_paddle1_pos_x, g_paddle1_pos_y))
 		{
-			if (IsHit(g_ball_pos_x, g_ball_pos_y, g_paddle1_pos_x, g_paddle1_pos_y))
-			{
-				g_ball_vel_x *= -1;
+			g_ball_vel_x *= -1;
 
-				g_ball_vel_y = (g_ball_pos_y - g_paddle1_pos_y) / 3;
+			g_ball_vel_y = (g_ball_pos_y - g_paddle1_pos_y) / 3;
 
-				if (g_ball_vel_x < 0)
-					g_ball_pos_x = g_paddle1_pos_x - PADDLE_WIDTH / 2 - BALL_SIZE / 2;
-				else
-					g_ball_pos_x = g_paddle1_pos_x + PADDLE_WIDTH / 2 + BALL_SIZE / 2;
+			if (g_ball_vel_x < 0)
+				g_ball_pos_x = g_paddle1_pos_x - PADDLE_WIDTH / 2 - BALL_SIZE / 2;
+			else
+				g_ball_pos_x = g_paddle1_pos_x + PADDLE_WIDTH / 2 + BALL_SIZE / 2;
 
-				flag_hit = 1;
-			}
-			else if (IsHit(g_ball_pos_x, g_ball_pos_y, g_paddle2_pos_x, g_paddle2_pos_y))
-			{
-				g_ball_vel_x *= -1;
-
-				g_ball_vel_y = (g_ball_pos_y - g_paddle2_pos_y) / 3;
-
-				if (g_ball_vel_x < 0)
-					g_ball_pos_x = g_paddle2_pos_x - PADDLE_WIDTH / 2 - BALL_SIZE / 2;
-				else
-					g_ball_pos_x = g_paddle2_pos_x + PADDLE_WIDTH / 2 + BALL_SIZE / 2;
-
-				flag_hit = 1;
-			}
+			flag_hit = 1;
 		}
-
-		// パドル・上下壁当たり判定
+		else if (IsHit(g_ball_pos_x, g_ball_pos_y, g_paddle2_pos_x, g_paddle2_pos_y))
 		{
-			float padding_top = SCREEN_TOP + (PADDLE_HEIGHT / 2);
-			float padding_bottom = SCREEN_BOTTOM - (PADDLE_HEIGHT / 2);
+			g_ball_vel_x *= -1;
 
-			// 壁にめり込まないように調整
-			g_paddle1_pos_y = ClampF(g_paddle1_pos_y, padding_top, padding_bottom);
+			g_ball_vel_y = (g_ball_pos_y - g_paddle2_pos_y) / 3;
 
-			// 壁にめり込まないように調整
-			g_paddle2_pos_y = ClampF(g_paddle2_pos_y, padding_top, padding_bottom);
+			if (g_ball_vel_x < 0)
+				g_ball_pos_x = g_paddle2_pos_x - PADDLE_WIDTH / 2 - BALL_SIZE / 2;
+			else
+				g_ball_pos_x = g_paddle2_pos_x + PADDLE_WIDTH / 2 + BALL_SIZE / 2;
+
+			flag_hit = 1;
 		}
 	}
 
 	return flag_hit;
+}
+
+// <ゲームの更新処理:衝突:ボール×パドル> ------------------------------
+void UpdateGameObjectCollisionPaddleTopBottom(void)
+{
+	// パドル・上下壁当たり判定
+	{
+		float padding_top = SCREEN_TOP + (PADDLE_HEIGHT / 2);
+		float padding_bottom = SCREEN_BOTTOM - (PADDLE_HEIGHT / 2);
+
+		// 壁にめり込まないように調整
+		g_paddle1_pos_y = ClampF(g_paddle1_pos_y, padding_top, padding_bottom);
+
+		// 壁にめり込まないように調整
+		g_paddle2_pos_y = ClampF(g_paddle2_pos_y, padding_top, padding_bottom);
+	}
 }
 
 //----------------------------------------------------------------------
@@ -708,55 +714,92 @@ void RenderGame(void)
 	switch (g_game_state)
 	{
 	case STATE_DEMO:
-		RenderGameDemo();
+		RenderGameSceneDemo();
 		break;
 	case STATE_SERVE:
-		RenderGameServe();
+		RenderGameSceneServe();
 		break;
 	case STATE_PLAY:
-		RenderGamePlay();
+		RenderGameScenePlay();
 		break;
 	}
 }
 
-// <ゲームの描画処理:デモ> ---------------------------------------------
-void RenderGameDemo(void)
+// <ゲームの描画処理:シーン:デモ> ---------------------------------------------
+void RenderGameSceneDemo(void)
 {
-	RenderGameCommon();
+	// オブジェクト描画
+	RenderGameObjectField();
+	RenderGameObjectScore();
+	RenderGameObjectBall();
 }
 
-// <ゲームの描画処理:サーブ> -------------------------------------------
-void RenderGameServe(void)
+// <ゲームの描画処理:シーン:サーブ> -------------------------------------------
+void RenderGameSceneServe(void)
 {
-	RenderGameCommon();
+	// オブジェクト描画
+	RenderGameObjectField();
+	RenderGameObjectScore();
+	RenderGameObjectPaddle();
+	RenderGameObjectBall();
 }
 
-// <ゲームの描画処理:プレイ> -------------------------------------------
-void RenderGamePlay(void)
+// <ゲームの描画処理:シーン:プレイ> -------------------------------------------
+void RenderGameScenePlay(void)
 {
-	RenderGameCommon();
+	// オブジェクト描画
+	RenderGameObjectField();
+	RenderGameObjectScore();
+	RenderGameObjectPaddleGuide();
+	RenderGameObjectPaddle();
+	RenderGameObjectBall();
 }
 
-// <ゲームの共通描画処理> ----------------------------------------------
-void RenderGameCommon(void)
+// <ゲームの描画処理:コート> -------------------------------------------
+void RenderGameObjectField(void)
 {
 	// コート表示
 	DrawDashedLine(SCREEN_CENTER_X, SCREEN_TOP, SCREEN_CENTER_X, SCREEN_BOTTOM, COLOR_WHITE, 8, 2);
+}
 
+// <ゲームの描画処理:スコア> -------------------------------------------
+void RenderGameObjectScore(void)
+{
 	// スコア表示
-	DrawFormatStringToHandle(SCREEN_CENTER_X - 100 - GetDrawFormatStringWidthToHandle(g_font, "%2d", g_score1), 10, COLOR_WHITE, g_font, "%2d", g_score1);
-	DrawFormatStringToHandle(SCREEN_CENTER_X + 100, 10, COLOR_WHITE, g_font, "%2d", g_score2);
+	{
+		// フォントを使用した文字の幅を取得
+		int width_score1 = GetDrawFormatStringWidthToHandle(g_font, "%2d", g_score1);
 
+		DrawFormatStringToHandle(SCREEN_CENTER_X - 100 - width_score1, 10, COLOR_WHITE, g_font, "%2d", g_score1);
+		DrawFormatStringToHandle(SCREEN_CENTER_X + 100, 10, COLOR_WHITE, g_font, "%2d", g_score2);
+	}
+}
+
+// <ゲームの描画処理:パドルガイド> -------------------------------------
+void RenderGameObjectPaddleGuide(void)
+{
 	// ガイド表示
-	RenderObj(g_paddle1_target_pos_x, g_paddle1_target_pos_y, PADDLE_WIDTH, PADDLE_HEIGHT, 0x222222);
-	RenderObj(g_paddle2_target_pos_x, g_paddle2_target_pos_y, PADDLE_WIDTH, PADDLE_HEIGHT, 0x222222);
+	{
+		RenderObj(g_paddle1_target_pos_x, g_paddle1_target_pos_y, PADDLE_WIDTH, PADDLE_HEIGHT, 0x222222);
+		RenderObj(g_paddle2_target_pos_x, g_paddle2_target_pos_y, PADDLE_WIDTH, PADDLE_HEIGHT, 0x222222);
+	}
+}
 
+// <ゲームの描画処理:パドル> -------------------------------------------
+void RenderGameObjectPaddle(void)
+{
+	// パドル表示
+	{
+		RenderObj(g_paddle1_pos_x, g_paddle1_pos_y, PADDLE_WIDTH, PADDLE_HEIGHT, COLOR_WHITE);
+		RenderObj(g_paddle2_pos_x, g_paddle2_pos_y, PADDLE_WIDTH, PADDLE_HEIGHT, COLOR_WHITE);
+	}
+}
+
+// <ゲームの描画処理:ボール> -------------------------------------------
+void RenderGameObjectBall(void)
+{
 	// ボール表示
 	RenderObj(g_ball_pos_x, g_ball_pos_y, BALL_SIZE, BALL_SIZE, COLOR_WHITE);
-
-	// パドル表示
-	RenderObj(g_paddle1_pos_x, g_paddle1_pos_y, PADDLE_WIDTH, PADDLE_HEIGHT, COLOR_WHITE);
-	RenderObj(g_paddle2_pos_x, g_paddle2_pos_y, PADDLE_WIDTH, PADDLE_HEIGHT, COLOR_WHITE);
 }
 
 //----------------------------------------------------------------------
