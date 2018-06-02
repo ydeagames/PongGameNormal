@@ -50,6 +50,11 @@ enum GameState
 #define FONT_NAME "HGP創英角ｺﾞｼｯｸUB"
 #define FONT_SIZE_SCORE 100
 
+// <サウンド> ----------------------------------------------------------
+#define SOUND_SE01 "Resources\\Sounds\\SE01.ogg"
+#define SOUND_SE02 "Resources\\Sounds\\SE02.ogg"
+#define SOUND_SE03 "Resources\\Sounds\\SE03.ogg"
+
 // <サーブ待機> --------------------------------------------------------
 #define SERVE_WAIT_TIME 2*60
 
@@ -82,6 +87,11 @@ int g_score2;
 // <フォント> ----------------------------------------------------------
 HFNT g_font;
 
+// <サウンド> ----------------------------------------------------------
+HSND g_sound_se01;
+HSND g_sound_se02;
+HSND g_sound_se03;
+
 // <サーブ待機> --------------------------------------------------------
 int g_counter;
 
@@ -107,10 +117,10 @@ void UpdateGamePositionPaddle(void);
 void UpdateGamePositionPaddleTarget(void);
 
 // <ゲームの更新処理:オブジェクト:当たり判定> --------------------------
-void UpdateGameCollisionBallTopBottom(void);
-void UpdateGameCollisionBallLeftRight(void);
-void UpdateGameCollisionBallScoring(void);
-void UpdateGameCollisionPaddle(void);
+int UpdateGameCollisionBallTopBottom(void);
+int UpdateGameCollisionBallLeftRight(void);
+int UpdateGameCollisionBallScoring(void);
+int UpdateGameCollisionPaddle(void);
 
 // <ゲームの更新処理:ユーティリティ> -----------------------------------
 int IsHit(float ball_pos_x, float ball_pos_y, float paddle_pos_x, float paddle_pos_y);
@@ -143,7 +153,7 @@ void InitializeGame(void)
 
 	// ボール
 	g_ball_pos_x = (float)(SCREEN_CENTER_X);
-	g_ball_pos_y = 50;
+	g_ball_pos_y = (float)(SCREEN_CENTER_Y);
 	g_ball_vel_x = BALL_VEL_X;
 	g_ball_vel_y = -BALL_VEL_Y;
 
@@ -172,6 +182,11 @@ void InitializeGame(void)
 		g_font = CreateFontToHandle(FONT_CUSTOM_NAME, FONT_SIZE_SCORE, 3, DX_FONTTYPE_ANTIALIASING_4X4);
 	else
 		g_font = CreateFontToHandle(FONT_NAME, FONT_SIZE_SCORE, 3, DX_FONTTYPE_ANTIALIASING_4X4);
+
+	// サウンド
+	g_sound_se01 = LoadSoundMem(SOUND_SE01);
+	g_sound_se02 = LoadSoundMem(SOUND_SE02);
+	g_sound_se03 = LoadSoundMem(SOUND_SE03);
 
 	// サーブ待機
 	g_counter = 0;
@@ -207,15 +222,21 @@ void UpdateGame(void)
 // <ゲームの更新処理:デモ> ---------------------------------------------
 void UpdateGameDemo(void)
 {
-	// 入力されたら
-	if (g_input_state & PAD_INPUT_10)
+	// 待機&初期化
 	{
-		// 点数リセット
-		g_score1 = 0;
-		g_score2 = 0;
+		// 入力されたら
+		if (g_input_state & PAD_INPUT_10)
+		{
+			// 点数リセット
+			g_score1 = 0;
+			g_score2 = 0;
 
-		// シーンをプレイに変更
-		g_game_state = STATE_PLAY;
+			// X座標を画面中央へ戻す
+			g_ball_pos_x = (float)(SCREEN_CENTER_X);
+
+			// シーンをプレイに変更
+			g_game_state = STATE_PLAY;
+		}
 	}
 
 	// 座標更新
@@ -274,9 +295,12 @@ void UpdateGamePlay(void)
 	UpdateGamePositionPaddle();
 
 	// 当たり判定
-	UpdateGameCollisionBallTopBottom();
-	UpdateGameCollisionBallScoring();
-	UpdateGameCollisionPaddle();
+	if (UpdateGameCollisionBallTopBottom())
+		PlaySoundMem(g_sound_se02, DX_PLAYTYPE_BACK);
+	if (UpdateGameCollisionBallScoring())
+		PlaySoundMem(g_sound_se03, DX_PLAYTYPE_BACK);
+	if (UpdateGameCollisionPaddle())
+		PlaySoundMem(g_sound_se01, DX_PLAYTYPE_BACK);
 }
 
 // <ゲームの操作パドル1> -----------------------------------------------
@@ -398,8 +422,11 @@ void UpdateGamePositionPaddleTarget(void)
 }
 
 // <ゲームの衝突ボールスコア上下> --------------------------------------
-void UpdateGameCollisionBallTopBottom(void)
+int UpdateGameCollisionBallTopBottom(void)
 {
+	// ヒットフラグ
+	int flag_hit = 0;
+
 	// ボール・上下壁当たり判定
 	{
 		float padding_top = SCREEN_TOP + (BALL_SIZE / 2);
@@ -407,16 +434,25 @@ void UpdateGameCollisionBallTopBottom(void)
 
 		// 画面外に出たときの処理
 		if (g_ball_pos_y < padding_top || padding_bottom <= g_ball_pos_y)
+		{
 			g_ball_vel_y *= -1.f;
+
+			flag_hit = 1;
+		}
 
 		// 壁にめり込まないように調整
 		g_ball_pos_y = ClampF(g_ball_pos_y, padding_top, padding_bottom);
 	}
+
+	return flag_hit;
 }
 
 // <ゲームの衝突ボールスコア左右> --------------------------------------
-void UpdateGameCollisionBallLeftRight(void)
+int UpdateGameCollisionBallLeftRight(void)
 {
+	// ヒットフラグ
+	int flag_hit = 0;
+
 	// ボール・左右壁当たり判定
 	{
 		float padding_left = SCREEN_LEFT + (BALL_SIZE / 2);
@@ -424,16 +460,25 @@ void UpdateGameCollisionBallLeftRight(void)
 
 		// 画面外に出たときの処理
 		if (g_ball_pos_x < padding_left || padding_right <= g_ball_pos_x)
+		{
 			g_ball_vel_x *= -1.f;
+
+			flag_hit = 1;
+		}
 
 		// 壁にめり込まないように調整
 		g_ball_pos_x = ClampF(g_ball_pos_x, padding_left, padding_right);
 	}
+
+	return flag_hit;
 }
 
 // <ゲームの衝突ボール> ------------------------------------------------
-void UpdateGameCollisionBallScoring(void)
+int UpdateGameCollisionBallScoring(void)
 {
+	// ヒットフラグ
+	int flag_hit = 0;
+
 	// パドル・左右壁当たり判定
 	{
 		float padding_left = SCREEN_LEFT + (BALL_SIZE / 2);
@@ -451,7 +496,6 @@ void UpdateGameCollisionBallScoring(void)
 			{
 				// 初期化ボール
 				g_ball_pos_x = (float)(SCREEN_CENTER_X);
-				g_ball_pos_y = 50;
 				g_ball_vel_x = BALL_VEL_X;
 				g_ball_vel_y = -BALL_VEL_Y;
 
@@ -461,13 +505,20 @@ void UpdateGameCollisionBallScoring(void)
 			else
 				// シーンをサーブに変更
 				g_game_state = STATE_SERVE;
+
+			flag_hit = 1;
 		}
 	}
+
+	return flag_hit;
 }
 
 // <ゲームの衝突パドル> ------------------------------------------------
-void UpdateGameCollisionPaddle(void)
+int UpdateGameCollisionPaddle(void)
 {
+	// ヒットフラグ
+	int flag_hit = 0;
+
 	// パドル当たり判定
 	{
 		// ボール・パドル当たり判定
@@ -482,6 +533,8 @@ void UpdateGameCollisionPaddle(void)
 					g_ball_pos_x = g_paddle1_pos_x - PADDLE_WIDTH / 2 - BALL_SIZE / 2;
 				else
 					g_ball_pos_x = g_paddle1_pos_x + PADDLE_WIDTH / 2 + BALL_SIZE / 2;
+
+				flag_hit = 1;
 			}
 			else if (IsHit(g_ball_pos_x, g_ball_pos_y, g_paddle2_pos_x, g_paddle2_pos_y))
 			{
@@ -493,6 +546,8 @@ void UpdateGameCollisionPaddle(void)
 					g_ball_pos_x = g_paddle2_pos_x - PADDLE_WIDTH / 2 - BALL_SIZE / 2;
 				else
 					g_ball_pos_x = g_paddle2_pos_x + PADDLE_WIDTH / 2 + BALL_SIZE / 2;
+
+				flag_hit = 1;
 			}
 		}
 
@@ -508,6 +563,8 @@ void UpdateGameCollisionPaddle(void)
 			g_paddle2_pos_y = ClampF(g_paddle2_pos_y, padding_top, padding_bottom);
 		}
 	}
+
+	return flag_hit;
 }
 
 //----------------------------------------------------------------------
@@ -731,4 +788,9 @@ void FinalizeGame(void)
 	// フォント
 	DeleteFontToHandle(g_font);
 	RemoveFontResourceEx(FONT_CUSTOM_FILE, FR_PRIVATE, NULL);
+
+	// サウンド
+	DeleteSoundMem(g_sound_se01);
+	DeleteSoundMem(g_sound_se02);
+	DeleteSoundMem(g_sound_se03);
 }
