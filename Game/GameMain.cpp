@@ -58,6 +58,7 @@ enum GameState
 // <サーブ待機> --------------------------------------------------------
 #define SERVE_WAIT_TIME 2*60
 
+
 // グローバル変数の宣言 ====================================================
 
 // <入力> --------------------------------------------------------------
@@ -148,6 +149,7 @@ void RenderGameObjectBall(void);
 
 // <ゲームの描画処理:ユーティリティ> -----------------------------------
 void RenderObj(float x, float y, float w, float h, unsigned int color);
+
 
 // 関数の定義 ==============================================================
 
@@ -265,20 +267,19 @@ void UpdateGameSceneDemo(void)
 void UpdateGameSceneServe(void)
 {
 	// 待機&初期化
+
+	g_counter++;
+
+	// 時間経過で
+	if (g_counter >= SERVE_WAIT_TIME)
 	{
-		g_counter++;
+		// X座標を画面中央へ戻す
+		g_ball_pos_x = (float)(SCREEN_CENTER_X);
 
-		// 時間経過で
-		if (g_counter >= SERVE_WAIT_TIME)
-		{
-			// X座標を画面中央へ戻す
-			g_ball_pos_x = (float)(SCREEN_CENTER_X);
+		// シーンをプレイに変更
+		g_game_state = STATE_PLAY;
 
-			// シーンをプレイに変更
-			g_game_state = STATE_PLAY;
-
-			g_counter = 0;
-		}
+		g_counter = 0;
 	}
 
 	// 操作
@@ -323,132 +324,116 @@ void UpdateGameScenePlay(void)
 void UpdateGameTime(void)
 {
 	// 60Hz以外のモニターでもボールの速度は一定
-	{
-		int time_now = GetNowCount();
+	int time_now = GetNowCount();
 
-		g_time_count = (g_time_count + 1) % 60;
-		if (g_time_count == 0 && g_time_last > 0)
-			g_time_multiplier = (time_now - g_time_last) / 14.f;
-		g_time_last = time_now;
-	}
+	g_time_count = (g_time_count + 1) % 60;
+	if (g_time_count == 0 && g_time_last > 0)
+		g_time_multiplier = (time_now - g_time_last) / 14.f;
+	g_time_last = time_now;
 }
 
 // <ゲームの更新処理:操作:パドル1> -------------------------------------
 void UpdateGameControlPaddle1(void)
 {
 	// 操作
-	{
-		//UpdateGameControlPaddlePlayer1();
-		UpdateGameControlPaddleBot1();
-	}
+
+	//UpdateGameControlPaddlePlayer1();
+	UpdateGameControlPaddleBot1();
 }
 
 // <ゲームの更新処理:操作:パドル2> -------------------------------------
 void UpdateGameControlPaddle2(void)
 {
 	// 操作
-	{
-		UpdateGameControlPaddlePlayer2();
-		//UpdateGameControlPaddleBot2();
-	}
+
+	UpdateGameControlPaddlePlayer2();
+	//UpdateGameControlPaddleBot2();
 }
 
 // <ゲームの更新処理:操作:プレイヤー1> ---------------------------------
 void UpdateGameControlPaddlePlayer1(void)
 {
 	// キー入力でパドル1を操作
-	{
-		g_paddle1_vel_y = 0.f;
-		if (g_input_state & (PAD_INPUT_8 | PAD_INPUT_4))
-			g_paddle1_vel_y += -PADDLE_VEL;
-		else if (g_input_state & (PAD_INPUT_5 | PAD_INPUT_5))
-			g_paddle1_vel_y += PADDLE_VEL;
-	}
+	g_paddle1_vel_y = 0.f;
+	if (g_input_state & (PAD_INPUT_8 | PAD_INPUT_4))
+		g_paddle1_vel_y += -PADDLE_VEL;
+	else if (g_input_state & (PAD_INPUT_5 | PAD_INPUT_5))
+		g_paddle1_vel_y += PADDLE_VEL;
 }
 
 // <ゲームの更新処理:操作:プレイヤー2> ---------------------------------
 void UpdateGameControlPaddlePlayer2(void)
 {
 	// キー入力でパドル2を操作
-	{
-		g_paddle2_vel_y = 0.f;
-		if (g_input_state & PAD_INPUT_UP)
-			g_paddle2_vel_y += -PADDLE_VEL;
-		else if (g_input_state & PAD_INPUT_DOWN)
-			g_paddle2_vel_y += PADDLE_VEL;
-	}
+	g_paddle2_vel_y = 0.f;
+	if (g_input_state & PAD_INPUT_UP)
+		g_paddle2_vel_y += -PADDLE_VEL;
+	else if (g_input_state & PAD_INPUT_DOWN)
+		g_paddle2_vel_y += PADDLE_VEL;
 }
 
 // <ゲームの更新処理:操作:Bot1> ----------------------------------------
 void UpdateGameControlPaddleBot1(void)
 {
 	// Botがパドル1を操作
-	{
-		float target1_pos_y = g_paddle1_target_pos_y;
+	float target1_pos_y = g_paddle1_target_pos_y;
 
-		// Botが移動できる幅を制限
-		target1_pos_y = ClampF(target1_pos_y, SCREEN_TOP + 50, SCREEN_BOTTOM - 50);
+	// Botが移動できる幅を制限
+	target1_pos_y = ClampF(target1_pos_y, SCREEN_TOP + 50, SCREEN_BOTTOM - 50);
 
-		g_paddle1_vel_y = 0.f;
-		if (g_paddle1_pos_y - target1_pos_y > BALL_SIZE / 2)
-			g_paddle1_vel_y += -PADDLE_VEL;
-		else if (g_paddle1_pos_y - target1_pos_y < -BALL_SIZE / 2)
-			g_paddle1_vel_y += PADDLE_VEL;
-	}
+	g_paddle1_vel_y = 0.f;
+	if (g_paddle1_pos_y - target1_pos_y > BALL_SIZE / 2)
+		g_paddle1_vel_y += -PADDLE_VEL;
+	else if (g_paddle1_pos_y - target1_pos_y < -BALL_SIZE / 2)
+		g_paddle1_vel_y += PADDLE_VEL;
 }
 
 // <ゲームの更新処理:操作:Bot2> ----------------------------------------
 void UpdateGameControlPaddleBot2(void)
 {
 	// Botがパドル2を操作
-	{
-		float target2_pos_y = g_paddle2_target_pos_y;
+	float target2_pos_y = g_paddle2_target_pos_y;
 
-		// Botが移動できる幅を制限
-		target2_pos_y = ClampF(target2_pos_y, SCREEN_TOP + 50, SCREEN_BOTTOM - 50);
+	// Botが移動できる幅を制限
+	target2_pos_y = ClampF(target2_pos_y, SCREEN_TOP + 50, SCREEN_BOTTOM - 50);
 
-		g_paddle2_vel_y = 0.f;
-		if (g_paddle2_pos_y - target2_pos_y > BALL_SIZE / 2)
-			g_paddle2_vel_y += -PADDLE_VEL;
-		else if (g_paddle2_pos_y - target2_pos_y < -BALL_SIZE / 2)
-			g_paddle2_vel_y += PADDLE_VEL;
-	}
+	g_paddle2_vel_y = 0.f;
+	if (g_paddle2_pos_y - target2_pos_y > BALL_SIZE / 2)
+		g_paddle2_vel_y += -PADDLE_VEL;
+	else if (g_paddle2_pos_y - target2_pos_y < -BALL_SIZE / 2)
+		g_paddle2_vel_y += PADDLE_VEL;
 }
 
 // <ゲームの更新処理:座標:ボール> --------------------------------------
 void UpdateGameObjectPositionBall(void)
 {
 	// 座標更新
-	{
-		// posにvelを足す
-		g_ball_pos_x += g_ball_vel_x * g_time_multiplier;
-		g_ball_pos_y += g_ball_vel_y * g_time_multiplier;
-	}
+
+	// posにvelを足す
+	g_ball_pos_x += g_ball_vel_x * g_time_multiplier;
+	g_ball_pos_y += g_ball_vel_y * g_time_multiplier;
 }
 
 // <ゲームの更新処理:座標:パドル> --------------------------------------
 void UpdateGameObjectPositionPaddle(void)
 {
 	// 座標更新
-	{
-		// posにvelを足す
-		g_paddle1_pos_x += g_paddle1_vel_x * g_time_multiplier;
-		g_paddle1_pos_y += g_paddle1_vel_y * g_time_multiplier;
 
-		// posにvelを足す
-		g_paddle2_pos_x += g_paddle2_vel_x * g_time_multiplier;
-		g_paddle2_pos_y += g_paddle2_vel_y * g_time_multiplier;
-	}
+	// posにvelを足す
+	g_paddle1_pos_x += g_paddle1_vel_x * g_time_multiplier;
+	g_paddle1_pos_y += g_paddle1_vel_y * g_time_multiplier;
+
+	// posにvelを足す
+	g_paddle2_pos_x += g_paddle2_vel_x * g_time_multiplier;
+	g_paddle2_pos_y += g_paddle2_vel_y * g_time_multiplier;
 }
 
 // <ゲームの更新処理:座標:パドルターゲット> ----------------------------
 void UpdateGameObjectPositionPaddleTarget(void)
 {
 	// ターゲット計算
-	{
-		g_paddle1_target_pos_y = getTargetY(g_paddle1_pos_x, g_paddle2_pos_x, 1);
-		g_paddle2_target_pos_y = getTargetY(g_paddle2_pos_x, g_paddle1_pos_x, -1);
-	}
+	g_paddle1_target_pos_y = getTargetY(g_paddle1_pos_x, g_paddle2_pos_x, 1);
+	g_paddle2_target_pos_y = getTargetY(g_paddle2_pos_x, g_paddle1_pos_x, -1);
 }
 
 // <ゲームの更新処理:衝突:ボール×壁上下> ------------------------------
@@ -586,16 +571,15 @@ int UpdateGameObjectCollisionBallPaddle(void)
 void UpdateGameObjectCollisionPaddleTopBottom(void)
 {
 	// パドル・上下壁当たり判定
-	{
-		float padding_top = SCREEN_TOP + (PADDLE_HEIGHT / 2);
-		float padding_bottom = SCREEN_BOTTOM - (PADDLE_HEIGHT / 2);
 
-		// 壁にめり込まないように調整
-		g_paddle1_pos_y = ClampF(g_paddle1_pos_y, padding_top, padding_bottom);
+	float padding_top = SCREEN_TOP + (PADDLE_HEIGHT / 2);
+	float padding_bottom = SCREEN_BOTTOM - (PADDLE_HEIGHT / 2);
 
-		// 壁にめり込まないように調整
-		g_paddle2_pos_y = ClampF(g_paddle2_pos_y, padding_top, padding_bottom);
-	}
+	// 壁にめり込まないように調整
+	g_paddle1_pos_y = ClampF(g_paddle1_pos_y, padding_top, padding_bottom);
+
+	// 壁にめり込まないように調整
+	g_paddle2_pos_y = ClampF(g_paddle2_pos_y, padding_top, padding_bottom);
 }
 
 //----------------------------------------------------------------------
@@ -790,33 +774,28 @@ void RenderGameObjectField(void)
 void RenderGameObjectScore(void)
 {
 	// スコア表示
-	{
-		// フォントを使用した文字の幅を取得
-		int width_score1 = GetDrawFormatStringWidthToHandle(g_font, "%2d", g_score1);
 
-		DrawFormatStringToHandle(SCREEN_CENTER_X - 100 - width_score1, 10, COLOR_WHITE, g_font, "%2d", g_score1);
-		DrawFormatStringToHandle(SCREEN_CENTER_X + 100, 10, COLOR_WHITE, g_font, "%2d", g_score2);
-	}
+	// フォントを使用した文字の幅を取得
+	int width_score1 = GetDrawFormatStringWidthToHandle(g_font, "%2d", g_score1);
+
+	DrawFormatStringToHandle(SCREEN_CENTER_X - 100 - width_score1, 10, COLOR_WHITE, g_font, "%2d", g_score1);
+	DrawFormatStringToHandle(SCREEN_CENTER_X + 100, 10, COLOR_WHITE, g_font, "%2d", g_score2);
 }
 
 // <ゲームの描画処理:パドルガイド> -------------------------------------
 void RenderGameObjectPaddleGuide(void)
 {
 	// ガイド表示
-	{
-		RenderObj(g_paddle1_target_pos_x, g_paddle1_target_pos_y, PADDLE_WIDTH, PADDLE_HEIGHT, 0x222222);
-		RenderObj(g_paddle2_target_pos_x, g_paddle2_target_pos_y, PADDLE_WIDTH, PADDLE_HEIGHT, 0x222222);
-	}
+	RenderObj(g_paddle1_target_pos_x, g_paddle1_target_pos_y, PADDLE_WIDTH, PADDLE_HEIGHT, 0x222222);
+	RenderObj(g_paddle2_target_pos_x, g_paddle2_target_pos_y, PADDLE_WIDTH, PADDLE_HEIGHT, 0x222222);
 }
 
 // <ゲームの描画処理:パドル> -------------------------------------------
 void RenderGameObjectPaddle(void)
 {
 	// パドル表示
-	{
-		RenderObj(g_paddle1_pos_x, g_paddle1_pos_y, PADDLE_WIDTH, PADDLE_HEIGHT, COLOR_WHITE);
-		RenderObj(g_paddle2_pos_x, g_paddle2_pos_y, PADDLE_WIDTH, PADDLE_HEIGHT, COLOR_WHITE);
-	}
+	RenderObj(g_paddle1_pos_x, g_paddle1_pos_y, PADDLE_WIDTH, PADDLE_HEIGHT, COLOR_WHITE);
+	RenderObj(g_paddle2_pos_x, g_paddle2_pos_y, PADDLE_WIDTH, PADDLE_HEIGHT, COLOR_WHITE);
 }
 
 // <ゲームの描画処理:ボール> -------------------------------------------
