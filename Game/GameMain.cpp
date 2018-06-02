@@ -44,6 +44,12 @@ enum GameState
 // <得点> --------------------------------------------------------------
 #define SCORE_GOAL 11
 
+// <フォント> ----------------------------------------------------------
+#define FONT_CUSTOM_FILE "Resources\\Fonts\\TheSlavicFont-Regular.ttf"
+#define FONT_CUSTOM_NAME "The Slavic Font"
+#define FONT_NAME "HGP創英角ｺﾞｼｯｸUB"
+#define FONT_SIZE_SCORE 100
+
 // <サーブ待機> --------------------------------------------------------
 #define SERVE_WAIT_TIME 2*60
 
@@ -162,7 +168,10 @@ void InitializeGame(void)
 	g_score2 = 0;
 
 	// フォント
-	g_font = CreateFontToHandle(NULL, 26, 3, DX_FONTTYPE_ANTIALIASING_4X4);
+	if (AddFontResourceEx(FONT_CUSTOM_FILE, FR_PRIVATE, NULL) > 0)
+		g_font = CreateFontToHandle(FONT_CUSTOM_NAME, FONT_SIZE_SCORE, 3, DX_FONTTYPE_ANTIALIASING_4X4);
+	else
+		g_font = CreateFontToHandle(FONT_NAME, FONT_SIZE_SCORE, 3, DX_FONTTYPE_ANTIALIASING_4X4);
 
 	// サーブ待機
 	g_counter = 0;
@@ -198,8 +207,16 @@ void UpdateGame(void)
 // <ゲームの更新処理:デモ> ---------------------------------------------
 void UpdateGameDemo(void)
 {
+	// 入力されたら
 	if (g_input_state & PAD_INPUT_10)
+	{
+		// 点数リセット
+		g_score1 = 0;
+		g_score2 = 0;
+
+		// シーンをプレイに変更
 		g_game_state = STATE_PLAY;
+	}
 
 	// 座標更新
 	UpdateGamePositionBall();
@@ -216,12 +233,9 @@ void UpdateGameServe(void)
 	{
 		g_counter++;
 
+		// 時間経過で
 		if (g_counter >= SERVE_WAIT_TIME)
 		{
-			// 点数リセット
-			g_score1 = 0;
-			g_score2 = 0;
-
 			// X座標を画面中央へ戻す
 			g_ball_pos_x = (float)(SCREEN_CENTER_X);
 
@@ -291,9 +305,9 @@ void UpdateGameControlPaddlePlayer1(void)
 	// キー入力でパドル1を操作
 	{
 		g_paddle1_vel_y = 0.f;
-		if (g_input_state & (PAD_INPUT_8|PAD_INPUT_4))
+		if (g_input_state & (PAD_INPUT_8 | PAD_INPUT_4))
 			g_paddle1_vel_y += -PADDLE_VEL;
-		else if (g_input_state & (PAD_INPUT_5|PAD_INPUT_5))
+		else if (g_input_state & (PAD_INPUT_5 | PAD_INPUT_5))
 			g_paddle1_vel_y += PADDLE_VEL;
 	}
 }
@@ -434,8 +448,16 @@ void UpdateGameCollisionBallScoring(void)
 				g_score1++;
 
 			if (g_score1 >= SCORE_GOAL || g_score2 >= SCORE_GOAL)
+			{
+				// 初期化ボール
+				g_ball_pos_x = (float)(SCREEN_CENTER_X);
+				g_ball_pos_y = 50;
+				g_ball_vel_x = BALL_VEL_X;
+				g_ball_vel_y = -BALL_VEL_Y;
+
 				// シーンをデモに変更
 				g_game_state = STATE_DEMO;
+			}
 			else
 				// シーンをサーブに変更
 				g_game_state = STATE_SERVE;
@@ -540,8 +562,8 @@ float getTargetY(float paddle_enemy_pos_x, float paddle_myself_pos_x, int k)
 
 	// ボール、パドルサイズを考慮した敵パドル、自パドルのX座標
 	{
-		enemy_pos_x = paddle_myself_pos_x - k*(BALL_SIZE / 2 + PADDLE_WIDTH / 2);
-		myself_pos_x = paddle_enemy_pos_x + k*(BALL_SIZE / 2 + PADDLE_WIDTH / 2);
+		enemy_pos_x = paddle_myself_pos_x - k * (BALL_SIZE / 2 + PADDLE_WIDTH / 2);
+		myself_pos_x = paddle_enemy_pos_x + k * (BALL_SIZE / 2 + PADDLE_WIDTH / 2);
 	}
 
 	{
@@ -552,15 +574,15 @@ float getTargetY(float paddle_enemy_pos_x, float paddle_myself_pos_x, int k)
 			{
 				// ボールが右に進んでいるとき 自分→敵→自分
 				// ボール～敵までの距離 (行き)
-				length_x += k*(enemy_pos_x - g_ball_pos_x);
+				length_x += k * (enemy_pos_x - g_ball_pos_x);
 				// 敵～自分の距離 (帰り)
-				length_x += k*(enemy_pos_x - myself_pos_x);
+				length_x += k * (enemy_pos_x - myself_pos_x);
 			}
 			else
 			{
 				// ボールが左に進んでいるとき 敵→自分
 				// ボール～自分までの距離
-				length_x += k*(g_ball_pos_x - myself_pos_x);
+				length_x += k * (g_ball_pos_x - myself_pos_x);
 			}
 		}
 
@@ -661,6 +683,13 @@ void RenderGamePlay(void)
 // <ゲームの共通描画処理> ----------------------------------------------
 void RenderGameCommon(void)
 {
+	// コート表示
+	DrawDashedLine(SCREEN_CENTER_X, SCREEN_TOP, SCREEN_CENTER_X, SCREEN_BOTTOM, COLOR_WHITE, 8, 2);
+
+	// スコア表示
+	DrawFormatStringToHandle(SCREEN_CENTER_X - 100 - GetDrawFormatStringWidthToHandle(g_font, "%2d", g_score1), 10, COLOR_WHITE, g_font, "%2d", g_score1);
+	DrawFormatStringToHandle(SCREEN_CENTER_X + 100, 10, COLOR_WHITE, g_font, "%2d", g_score2);
+
 	// ガイド表示
 	RenderObj(g_paddle1_target_pos_x, g_paddle1_target_pos_y, PADDLE_WIDTH, PADDLE_HEIGHT, 0x222222);
 	RenderObj(g_paddle2_target_pos_x, g_paddle2_target_pos_y, PADDLE_WIDTH, PADDLE_HEIGHT, 0x222222);
@@ -699,5 +728,7 @@ void RenderObj(float x, float y, float w, float h, unsigned int color)
 //----------------------------------------------------------------------
 void FinalizeGame(void)
 {
-
+	// フォント
+	DeleteFontToHandle(g_font);
+	RemoveFontResourceEx(FONT_CUSTOM_FILE, FR_PRIVATE, NULL);
 }
