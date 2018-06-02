@@ -95,6 +95,10 @@ HSND g_sound_se03;
 // <サーブ待機> --------------------------------------------------------
 int g_counter;
 
+// <FPS制御> -----------------------------------------------------------
+int g_time_count = 0;
+int g_time_last = -1;
+float g_time_multiplier = 1.f;
 
 // 関数の宣言 ==============================================================
 
@@ -102,6 +106,9 @@ int g_counter;
 void UpdateGameSceneDemo(void);
 void UpdateGameSceneServe(void);
 void UpdateGameScenePlay(void);
+
+// <ゲームの更新処理:時間> ---------------------------------------------
+void UpdateGameTime(void);
 
 // <ゲームの更新処理:操作:座標> ----------------------------------------
 void UpdateGameControlPaddle1(void);
@@ -210,6 +217,8 @@ void UpdateGame(void)
 	// キーボード取得
 	g_input_state = GetJoypadInputState(DX_INPUT_KEY_PAD1);
 
+	UpdateGameTime();
+
 	switch (g_game_state)
 	{
 	case STATE_DEMO:
@@ -283,6 +292,7 @@ void UpdateGameSceneServe(void)
 	// 当たり判定
 	UpdateGameObjectCollisionBallTopBottom();
 	UpdateGameObjectCollisionBallPaddle();
+	UpdateGameObjectCollisionPaddleTopBottom();
 }
 
 // <ゲームの更新処理:シーン:プレイ> ------------------------------------
@@ -306,6 +316,21 @@ void UpdateGameScenePlay(void)
 		PlaySoundMem(g_sound_se03, DX_PLAYTYPE_BACK);
 	if (UpdateGameObjectCollisionBallPaddle())
 		PlaySoundMem(g_sound_se01, DX_PLAYTYPE_BACK);
+	UpdateGameObjectCollisionPaddleTopBottom();
+}
+
+// <ゲームの更新処理:時間> ---------------------------------------------
+void UpdateGameTime(void)
+{
+	// 60Hz以外のモニターでもボールの速度は一定
+	{
+		int time_now = GetNowCount();
+
+		g_time_count = (g_time_count + 1) % 60;
+		if (g_time_count == 0 && g_time_last > 0)
+			g_time_multiplier = (time_now - g_time_last) / 14.f;
+		g_time_last = time_now;
+	}
 }
 
 // <ゲームの更新処理:操作:パドル1> -------------------------------------
@@ -396,8 +421,8 @@ void UpdateGameObjectPositionBall(void)
 	// 座標更新
 	{
 		// posにvelを足す
-		g_ball_pos_x += g_ball_vel_x;
-		g_ball_pos_y += g_ball_vel_y;
+		g_ball_pos_x += g_ball_vel_x * g_time_multiplier;
+		g_ball_pos_y += g_ball_vel_y * g_time_multiplier;
 	}
 }
 
@@ -407,12 +432,12 @@ void UpdateGameObjectPositionPaddle(void)
 	// 座標更新
 	{
 		// posにvelを足す
-		g_paddle1_pos_x += g_paddle1_vel_x;
-		g_paddle1_pos_y += g_paddle1_vel_y;
+		g_paddle1_pos_x += g_paddle1_vel_x * g_time_multiplier;
+		g_paddle1_pos_y += g_paddle1_vel_y * g_time_multiplier;
 
 		// posにvelを足す
-		g_paddle2_pos_x += g_paddle2_vel_x;
-		g_paddle2_pos_y += g_paddle2_vel_y;
+		g_paddle2_pos_x += g_paddle2_vel_x * g_time_multiplier;
+		g_paddle2_pos_y += g_paddle2_vel_y * g_time_multiplier;
 	}
 }
 
@@ -700,7 +725,6 @@ float getTargetY(float paddle_enemy_pos_x, float paddle_myself_pos_x, int k)
 
 	return target_pos_y;
 }
-
 
 //----------------------------------------------------------------------
 //! @brief ゲームの描画処理
