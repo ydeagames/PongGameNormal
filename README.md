@@ -1,0 +1,2 @@
+# PongGameNormal
+Dxライブラリを使用したPongゲームです
