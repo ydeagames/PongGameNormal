@@ -31,7 +31,8 @@ enum GameState
 // 定数の定義 ==============================================================
 
 // <ボール> ------------------------------------------------------------
-#define BALL_VEL_X 4
+#define BALL_VEL_X 6
+#define BALL_VEL_X_MIN 4
 #define BALL_VEL_Y 5.5f
 #define BALL_SIZE 8
 
@@ -126,6 +127,8 @@ void UpdateGameObjectCollisionPaddleTopBottom(void);
 // <ゲームの更新処理:ユーティリティ> -----------------------------------
 int IsHit(float ball_pos_x, float ball_pos_y, float paddle_pos_x, float paddle_pos_y);
 float getTargetY(float paddle_enemy_pos_x, float paddle_myself_pos_x, int k);
+float GetVelXFromPaddleVelY(float ball_vel_x, float paddle_vel_y);
+float GetVelYFromPaddlePosY(float ball_pos_y, float paddle_pos_y);
 
 // <ゲームの描画処理> --------------------------------------------------
 void RenderGameSceneDemo(void);
@@ -520,9 +523,9 @@ int UpdateGameObjectCollisionBallPaddle(void)
 	{
 		if (IsHit(g_ball_pos_x, g_ball_pos_y, g_paddle1_pos_x, g_paddle1_pos_y))
 		{
-			g_ball_vel_x *= -1;
+			g_ball_vel_x = GetVelXFromPaddleVelY(-g_ball_vel_x, g_paddle1_vel_y);
 
-			g_ball_vel_y = (g_ball_pos_y - g_paddle1_pos_y) / 3;
+			g_ball_vel_y = GetVelYFromPaddlePosY(g_ball_pos_y, g_paddle1_pos_y);
 
 			if (g_ball_vel_x < 0)
 				g_ball_pos_x = g_paddle1_pos_x - PADDLE_WIDTH / 2 - BALL_SIZE / 2;
@@ -533,9 +536,9 @@ int UpdateGameObjectCollisionBallPaddle(void)
 		}
 		else if (IsHit(g_ball_pos_x, g_ball_pos_y, g_paddle2_pos_x, g_paddle2_pos_y))
 		{
-			g_ball_vel_x *= -1;
+			g_ball_vel_x = GetVelXFromPaddleVelY(-g_ball_vel_x, g_paddle2_vel_y);
 
-			g_ball_vel_y = (g_ball_pos_y - g_paddle2_pos_y) / 3;
+			g_ball_vel_y = GetVelYFromPaddlePosY(g_ball_pos_y, g_paddle2_pos_y);
 
 			if (g_ball_vel_x < 0)
 				g_ball_pos_x = g_paddle2_pos_x - PADDLE_WIDTH / 2 - BALL_SIZE / 2;
@@ -690,6 +693,45 @@ float getTargetY(float paddle_enemy_pos_x, float paddle_myself_pos_x, int k)
 	}
 
 	return target_pos_y;
+}
+
+//----------------------------------------------------------------------
+//! @brief パドルの速度からボールX速度を求める
+//!
+//! @param[ball_vel_x] 現在のボールのX速度
+//! @param[paddle_vel_y] パドルのY速度
+//!
+//! @return 新しいボールのX速度
+//----------------------------------------------------------------------
+float GetVelXFromPaddleVelY(float ball_vel_x, float paddle_vel_y)
+{
+	float ball_vel_diff_x, ball_vel_new_x;
+
+	ball_vel_diff_x = paddle_vel_y / PADDLE_VEL * (BALL_VEL_X - BALL_VEL_X_MIN);
+	if (ball_vel_diff_x < 0)
+		ball_vel_diff_x *= -1;
+	ball_vel_new_x = ball_vel_diff_x + BALL_VEL_X_MIN;
+	if (ball_vel_x < 0)
+		ball_vel_new_x *= -1;
+
+	return ball_vel_new_x;
+}
+
+//----------------------------------------------------------------------
+//! @brief パドルにあたった位置からボールY速度を求める
+//!
+//! @param[ball_pos_y] ボールのY座標
+//! @param[paddle_pos_y] パドルのY座標
+//!
+//! @return 新しいボールのY速度
+//----------------------------------------------------------------------
+float GetVelYFromPaddlePosY(float ball_pos_y, float paddle_pos_y)
+{
+	float range_top = paddle_pos_y - (PADDLE_HEIGHT / 2 - BALL_SIZE / 2);
+	float range_bottom = paddle_pos_y + (PADDLE_HEIGHT / 2 - BALL_SIZE / 2);
+	float range_height = range_bottom - range_top;
+
+	return ((((ball_pos_y - range_top) / range_height) * 2 - 1)*BALL_VEL_Y);
 }
 
 //----------------------------------------------------------------------
