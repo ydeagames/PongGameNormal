@@ -32,12 +32,11 @@ enum GameState
 
 // <ボール> ------------------------------------------------------------
 #define BALL_VEL_X 4
-#define BALL_VEL_Y 6
+#define BALL_VEL_Y 5.5f
 #define BALL_SIZE 8
-#define BALL_Y_MANIPULATOR 1.f/3.f
 
 // <パドル> ------------------------------------------------------------
-#define PADDLE_VEL 6
+#define PADDLE_VEL 12
 #define PADDLE_WIDTH  8
 #define PADDLE_HEIGHT 28
 
@@ -166,7 +165,7 @@ void InitializeGame(void)
 
 	// パドル1
 	g_paddle1_pos_x = (float)(SCREEN_LEFT + (PADDLE_WIDTH / 2 + 64));
-	g_paddle1_pos_y = (float)(SCREEN_CENTER_Y);
+	g_paddle1_pos_y = (float)(SCREEN_BOTTOM - 30);
 	g_paddle1_vel_x = 0.f;
 	g_paddle1_vel_y = 0.f;
 	g_paddle1_target_pos_x = g_paddle1_pos_x;
@@ -174,7 +173,7 @@ void InitializeGame(void)
 
 	// パドル2
 	g_paddle2_pos_x = (float)(SCREEN_RIGHT - (PADDLE_WIDTH / 2 + 64));
-	g_paddle2_pos_y = (float)(SCREEN_CENTER_Y);
+	g_paddle2_pos_y = (float)(SCREEN_BOTTOM - 30);
 	g_paddle2_vel_x = 0.f;
 	g_paddle2_vel_y = 0.f;
 	g_paddle2_target_pos_x = g_paddle2_pos_x;
@@ -240,6 +239,10 @@ void UpdateGameSceneDemo(void)
 
 			// X座標を画面中央へ戻す
 			g_ball_pos_x = (float)(SCREEN_CENTER_X);
+
+			// パドルを初期位置へ
+			g_paddle1_pos_y = (float)(SCREEN_BOTTOM - 30);
+			g_paddle2_pos_y = (float)(SCREEN_BOTTOM - 30);
 
 			// シーンをプレイに変更
 			g_game_state = STATE_PLAY;
@@ -361,9 +364,9 @@ void UpdateGameControlPaddleBot1(void)
 	target1_pos_y = ClampF(target1_pos_y, SCREEN_TOP + 50, SCREEN_BOTTOM - 50);
 
 	g_paddle1_vel_y = 0.f;
-	if (g_paddle1_pos_y - target1_pos_y > BALL_SIZE / 2)
+	if (g_paddle1_pos_y - target1_pos_y > PADDLE_VEL)
 		g_paddle1_vel_y += -PADDLE_VEL;
-	else if (g_paddle1_pos_y - target1_pos_y < -BALL_SIZE / 2)
+	else if (g_paddle1_pos_y - target1_pos_y < -PADDLE_VEL)
 		g_paddle1_vel_y += PADDLE_VEL;
 }
 
