@@ -339,7 +339,7 @@ void UpdateGameControlPaddlePlayer1(void)
 	g_paddle1_vel_y = 0.f;
 	if (g_input_state & (PAD_INPUT_8 | PAD_INPUT_4))
 		g_paddle1_vel_y += -PADDLE_VEL;
-	else if (g_input_state & (PAD_INPUT_5 | PAD_INPUT_5))
+	if (g_input_state & (PAD_INPUT_5 | PAD_INPUT_1))
 		g_paddle1_vel_y += PADDLE_VEL;
 }
 
@@ -350,7 +350,7 @@ void UpdateGameControlPaddlePlayer2(void)
 	g_paddle2_vel_y = 0.f;
 	if (g_input_state & PAD_INPUT_UP)
 		g_paddle2_vel_y += -PADDLE_VEL;
-	else if (g_input_state & PAD_INPUT_DOWN)
+	if (g_input_state & PAD_INPUT_DOWN)
 		g_paddle2_vel_y += PADDLE_VEL;
 }
 
