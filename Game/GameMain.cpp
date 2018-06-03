@@ -31,13 +31,13 @@ enum GameState
 // 定数の定義 ==============================================================
 
 // <ボール> ------------------------------------------------------------
-#define BALL_VEL_X 6
+#define BALL_VEL_X_MAX 6
 #define BALL_VEL_X_MIN 4
 #define BALL_VEL_Y 5.5f
 #define BALL_SIZE 8
 
 // <パドル> ------------------------------------------------------------
-#define PADDLE_VEL 12
+#define PADDLE_VEL 10
 #define PADDLE_WIDTH  8
 #define PADDLE_HEIGHT 28
 
@@ -163,7 +163,7 @@ void InitializeGame(void)
 	// ボール
 	g_ball_pos_x = (float)(SCREEN_CENTER_X);
 	g_ball_pos_y = (float)(SCREEN_CENTER_Y);
-	g_ball_vel_x = BALL_VEL_X;
+	g_ball_vel_x = BALL_VEL_X_MIN;
 	g_ball_vel_y = -BALL_VEL_Y;
 
 	// パドル1
@@ -360,33 +360,57 @@ void UpdateGameControlPaddlePlayer2(void)
 // <ゲームの更新処理:操作:Bot1> ----------------------------------------
 void UpdateGameControlPaddleBot1(void)
 {
-	// Botがパドル1を操作
-	float target1_pos_y = g_paddle1_target_pos_y;
-
-	// Botが移動できる幅を制限
-	target1_pos_y = ClampF(target1_pos_y, SCREEN_TOP + 50, SCREEN_BOTTOM - 50);
+	// Botが動き始めるしきい値
+	float padding = 260 * BALL_VEL_X_MIN / PADDLE_VEL;
 
 	g_paddle1_vel_y = 0.f;
-	if (g_paddle1_pos_y - target1_pos_y > PADDLE_VEL)
-		g_paddle1_vel_y += -PADDLE_VEL;
-	else if (g_paddle1_pos_y - target1_pos_y < -PADDLE_VEL)
-		g_paddle1_vel_y += PADDLE_VEL;
+
+	// 自分向きかつしきい値より近かったら動く
+	if (g_ball_vel_x < 0 && g_ball_pos_x < g_paddle1_pos_x + padding)
+	{
+		// Botがパドル1を操作
+		float target1_pos_y = g_paddle1_target_pos_y;
+
+		// 死んだら中央に戻る
+		if (g_ball_pos_x < SCREEN_LEFT)
+			target1_pos_y = (float)(SCREEN_CENTER_Y);
+
+		// Botが移動できる幅を制限
+		//target1_pos_y = ClampF(target1_pos_y, SCREEN_TOP + 50, SCREEN_BOTTOM - 50);
+
+		if (g_paddle1_pos_y - target1_pos_y > 1.2f * PADDLE_VEL)
+			g_paddle1_vel_y += -PADDLE_VEL;
+		else if (g_paddle1_pos_y - target1_pos_y < -1.2f * PADDLE_VEL)
+			g_paddle1_vel_y += PADDLE_VEL;
+	}
 }
 
 // <ゲームの更新処理:操作:Bot2> ----------------------------------------
 void UpdateGameControlPaddleBot2(void)
 {
-	// Botがパドル2を操作
-	float target2_pos_y = g_paddle2_target_pos_y;
-
-	// Botが移動できる幅を制限
-	target2_pos_y = ClampF(target2_pos_y, SCREEN_TOP + 50, SCREEN_BOTTOM - 50);
+	// Botが動き始めるしきい値
+	float padding = 260 * BALL_VEL_X_MIN / PADDLE_VEL;
 
 	g_paddle2_vel_y = 0.f;
-	if (g_paddle2_pos_y - target2_pos_y > BALL_SIZE / 2)
-		g_paddle2_vel_y += -PADDLE_VEL;
-	else if (g_paddle2_pos_y - target2_pos_y < -BALL_SIZE / 2)
-		g_paddle2_vel_y += PADDLE_VEL;
+
+	// 自分向きかつしきい値より近かったら動く
+	if (g_ball_vel_x > 0 && g_ball_pos_x > g_paddle2_pos_x - padding)
+	{
+		// Botがパドル2を操作
+		float target2_pos_y = g_paddle2_target_pos_y;
+
+		// 死んだら中央に戻る
+		if (g_ball_pos_x > SCREEN_RIGHT)
+			target2_pos_y = (float)(SCREEN_CENTER_Y);
+
+		// Botが移動できる幅を制限
+		//target2_pos_y = ClampF(target2_pos_y, SCREEN_TOP + 50, SCREEN_BOTTOM - 50);
+
+		if (g_paddle2_pos_y - target2_pos_y > 1.2f * PADDLE_VEL)
+			g_paddle2_vel_y += -PADDLE_VEL;
+		else if (g_paddle2_pos_y - target2_pos_y < -1.2f * PADDLE_VEL)
+			g_paddle2_vel_y += PADDLE_VEL;
+	}
 }
 
 // <ゲームの更新処理:座標:ボール> --------------------------------------
@@ -494,10 +518,11 @@ int UpdateGameObjectCollisionBallLeftRightScoring(void)
 
 			if (g_score1 >= SCORE_GOAL || g_score2 >= SCORE_GOAL)
 			{
-				// 初期化ボール
+				// 初期化ボール座標
 				g_ball_pos_x = (float)(SCREEN_CENTER_X);
-				g_ball_vel_x = BALL_VEL_X;
+				// 初期化ボール速度
 				g_ball_vel_y = -BALL_VEL_Y;
+				g_ball_vel_x = BALL_VEL_X_MIN;
 
 				// シーンをデモに変更
 				g_game_state = STATE_DEMO;
@@ -707,7 +732,7 @@ float GetVelXFromPaddleVelY(float ball_vel_x, float paddle_vel_y)
 {
 	float ball_vel_diff_x, ball_vel_new_x;
 
-	ball_vel_diff_x = paddle_vel_y / PADDLE_VEL * (BALL_VEL_X - BALL_VEL_X_MIN);
+	ball_vel_diff_x = paddle_vel_y / PADDLE_VEL * (BALL_VEL_X_MAX - BALL_VEL_X_MIN);
 	if (ball_vel_diff_x < 0)
 		ball_vel_diff_x *= -1;
 	ball_vel_new_x = ball_vel_diff_x + BALL_VEL_X_MIN;
