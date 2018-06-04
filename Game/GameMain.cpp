@@ -31,18 +31,18 @@ enum GameState
 // 定数の定義 ==============================================================
 
 // <ボール> ------------------------------------------------------------
-#define BALL_VEL_X_MAX 6
-#define BALL_VEL_X_MIN 4
-#define BALL_VEL_Y 5.5f
+#define BALL_VEL_X_MAX 5	// パドルが移動している状態でボールにあたった時の速度
+#define BALL_VEL_X_MIN 3	// パドルが静止している状態でボールにあたった時の速度
+#define BALL_VEL_Y 4.5f		// Yの最大速度
 #define BALL_SIZE 8
 
 // <パドル> ------------------------------------------------------------
-#define PADDLE_VEL 10
+#define PADDLE_VEL 8		// パドルの速度
 #define PADDLE_WIDTH  8
 #define PADDLE_HEIGHT 28
 
 // <得点> --------------------------------------------------------------
-#define SCORE_GOAL 11
+#define SCORE_GOAL 11		// 最大スコア
 
 // <フォント> ----------------------------------------------------------
 #define FONT_CUSTOM_FILE "Resources\\Fonts\\TheSlavicFont-Regular.ttf"
@@ -807,7 +807,7 @@ void RenderGameScenePlay(void)
 	// オブジェクト描画
 	RenderGameObjectField();
 	RenderGameObjectScore();
-	RenderGameObjectPaddleGuide();
+	//RenderGameObjectPaddleGuide();
 	RenderGameObjectPaddle();
 	RenderGameObjectBall();
 }
