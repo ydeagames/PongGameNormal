@@ -373,7 +373,7 @@ void UpdateGameControlPaddleBot1(void)
 
 		// €‚ñ‚¾‚ç’†‰›‚É–ß‚é
 		if (g_ball_pos_x < SCREEN_LEFT)
-			target1_pos_y = (float)(SCREEN_CENTER_Y);
+			target1_pos_y = ClampF(g_paddle1_pos_y, SCREEN_CENTER_Y - 80.f, SCREEN_CENTER_Y + 80.f);
 
 		// Bot‚ªˆÚ“®‚Å‚«‚é•‚ğ§ŒÀ
 		//target1_pos_y = ClampF(target1_pos_y, SCREEN_TOP + 50, SCREEN_BOTTOM - 50);
@@ -401,7 +401,7 @@ void UpdateGameControlPaddleBot2(void)
 
 		// €‚ñ‚¾‚ç’†‰›‚É–ß‚é
 		if (g_ball_pos_x > SCREEN_RIGHT)
-			target2_pos_y = (float)(SCREEN_CENTER_Y);
+			target2_pos_y = ClampF(g_paddle2_pos_y, SCREEN_CENTER_Y - 80.f, SCREEN_CENTER_Y + 80.f);
 
 		// Bot‚ªˆÚ“®‚Å‚«‚é•‚ğ§ŒÀ
 		//target2_pos_y = ClampF(target2_pos_y, SCREEN_TOP + 50, SCREEN_BOTTOM - 50);
