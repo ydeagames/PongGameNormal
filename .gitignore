@@ -1,5 +1,5 @@
 
-# Created by https://www.gitignore.io/api/git,c++,windows,visualstudio
+# Created by https://www.gitignore.io/api/git,c++,cmake,windows,visualstudio
 
 ### C++ ###
 # Prerequisites
@@ -34,6 +34,18 @@
 *.exe
 *.out
 *.app
+
+### CMake ###
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+build
 
 ### Git ###
 *.orig
@@ -354,4 +366,4 @@ __pycache__/
 # should be stored in the .pubxml.user file.
 
 
-# End of https://www.gitignore.io/api/git,c++,windows,visualstudio
+# End of https://www.gitignore.io/api/git,c++,cmake,windows,visualstudio
