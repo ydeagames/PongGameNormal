@@ -6,20 +6,19 @@ set(DXLIB_FRAMEWORK_DIR ${CMAKE_CURRENT_BINARY_DIR}/DxLibGameFramework/src/DxLib
 
 # Pong Project
 set(PROJ_NAME Pong)
-project(${PROJ_NAME})
+project(${PROJ_NAME} CXX)
 
 include_directories(${DXLIB_DIR}/プロジェクトに追加すべきファイル_VC用)
 include_directories(${DXLIB_FRAMEWORK_DIR})
 link_directories(${DXLIB_DIR}/プロジェクトに追加すべきファイル_VC用)
 link_directories(${DXLIB_FRAMEWORK_DIR})
 file(GLOB_RECURSE SOURCES
-	Libralies/*.h
-	Libralies/*.cpp
 	Game/*.h
 	Game/*.cpp
 	WinMain.cpp
 )
 add_executable(${PROJ_NAME} WIN32 ${SOURCES} Resources/Icon/Icon.rc)
+set_target_properties(${PROJ_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 
 if(MSVC)
 	add_definitions(/FI"${DXLIB_FRAMEWORK_DIR}/GameFramework.h")
@@ -28,6 +27,8 @@ else()
 	add_definitions(-include ${DXLIB_FRAMEWORK_DIR}/GameFramework.h)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11")
 endif()
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
 
 file(REMOVE_RECURSE ${CMAKE_CURRENT_BINARY_DIR}/Resources)
 file(COPY Resources/ DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Resources)
@@ -37,7 +38,7 @@ ExternalProject_Add(
     DxLibGameFramework
     PREFIX "DxLibGameFramework"
     URL https://ydeagames.github.io/DxLibGameFramework/GameFramework.tar.gz
-    URL_HASH SHA512=249e71e0259434f24e59b510ed99ba39fb933f2228e74060f7d383368a441ad445fcd843e7c9a5f3d7b0d86a9a8c21e73069870c16360d5d06c88a5849c60b7b
+    URL_HASH SHA512=562ce85507fda7072d5ecadf76bd022d26178c9957ec9d945e0fb935bb4a85b822907189a2acd59d5e76929e4fc4ebec09dbbc6ec99d5436d5271c38d8c8b860
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     INSTALL_COMMAND ""
