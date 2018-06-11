@@ -126,7 +126,7 @@ void UpdateGameObjectCollisionPaddleTopBottom(void);
 
 // <ゲームの更新処理:ユーティリティ> -----------------------------------
 int IsHit(float ball_pos_x, float ball_pos_y, float paddle_pos_x, float paddle_pos_y);
-float GetTargetY(float paddle_enemy_pos_x, float paddle_myself_pos_x, int k);
+float GetTargetY(float paddle_enemy_pos_x, float paddle_myself_pos_x);
 float GetVelXFromPaddleVelY(float ball_vel_x, float paddle_vel_y);
 float GetVelYFromPaddlePosY(float ball_pos_y, float paddle_pos_y);
 
@@ -441,8 +441,8 @@ void UpdateGameObjectPositionPaddle(void)
 void UpdateGameObjectPositionPaddleTarget(void)
 {
 	// ターゲット計算
-	g_paddle1_target_pos_y = GetTargetY(g_paddle1_pos_x, g_paddle2_pos_x, 1);
-	g_paddle2_target_pos_y = GetTargetY(g_paddle2_pos_x, g_paddle1_pos_x, -1);
+	g_paddle1_target_pos_y = GetTargetY(g_paddle1_pos_x, g_paddle2_pos_x);
+	g_paddle2_target_pos_y = GetTargetY(g_paddle2_pos_x, g_paddle1_pos_x);
 }
 
 // <ゲームの更新処理:衝突:ボール×壁上下> ------------------------------
@@ -623,11 +623,10 @@ int IsHit(float ball_pos_x, float ball_pos_y, float paddle_pos_x, float paddle_p
 //!
 //! @param[paddle_enemy_pos_x] 敵パドルのX座標
 //! @param[paddle_myself_pos_x] 自パドルのX座標
-//! @param[k] 自パドルから放つボールの向き (1: 右向き, 2: 左向き)
 //!
 //! @return 予測Y座標
 //----------------------------------------------------------------------
-float GetTargetY(float paddle_enemy_pos_x, float paddle_myself_pos_x, int k)
+float GetTargetY(float paddle_myself_pos_x, float paddle_enemy_pos_x)
 {
 	// ボール、パドルサイズを考慮した敵パドル、自パドルのX座標
 	float enemy_pos_x, myself_pos_x;
@@ -641,11 +640,13 @@ float GetTargetY(float paddle_enemy_pos_x, float paddle_myself_pos_x, int k)
 	float screen_top_y, screen_bottom_y, screen_height;
 	// 目標の画面内座標
 	float target_pos_y;
+	// 自パドルから放つボールの向き (1: 右向き, -1: 左向き)
+	int k = (paddle_myself_pos_x < paddle_enemy_pos_x) ? 1 : -1;
 
 	// ボール、パドルサイズを考慮した敵パドル、自パドルのX座標
 	{
-		enemy_pos_x = paddle_myself_pos_x - k * (BALL_SIZE / 2 + PADDLE_WIDTH / 2);
-		myself_pos_x = paddle_enemy_pos_x + k * (BALL_SIZE / 2 + PADDLE_WIDTH / 2);
+		myself_pos_x = paddle_myself_pos_x + k * (BALL_SIZE / 2 + PADDLE_WIDTH / 2);
+		enemy_pos_x = paddle_enemy_pos_x - k * (BALL_SIZE / 2 + PADDLE_WIDTH / 2);
 	}
 
 	{
